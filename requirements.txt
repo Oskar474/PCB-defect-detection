@@ -1,0 +1,5 @@
+seaborn
+matplotlib
+ultralytics
+tabulate
+gradio

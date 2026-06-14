@@ -1,0 +1,26 @@
+# ==============================================================
+# DATASET ROOT PATH
+# ==============================================================
+# This is the base directory containing your dataset folder.
+# It can be an absolute path, or relative to where you run your code.
+path: ./data
+
+# ==============================================================
+# SPLIT DIRECTORIES (Relative to the 'path' variable above)
+# ==============================================================
+# YOLO automatically appends these paths to the root 'path' above.
+train: train/images  # Location of your training .jpg images
+val: valid/images      # Location of your validation/test .jpg images
+test: test/images
+# ==============================================================
+# DEFECT CLASS CONFIGURATION
+# ==============================================================
+nc: 6  # Total number of unique defect classes in DeepPCB
+
+names:
+  0: spurious_copper       # (spurious_copper / miedź szczątkowa)
+  1: mousebite    # (wygryzienie ścieżki)
+  2: open_circuit         # (open_circuit / przerwa w obwodzie)
+  3: pin-hole     # (nakłucie/otwór)
+  4: short_circuit        # (short_circuit / zwarcie)
+  5: spur         # (wypustka/naddatek)

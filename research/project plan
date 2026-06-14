@@ -1,0 +1,6 @@
+
+yolo11 and yolo 26
+
+1. comparision without augmentations
+2. comparision with augmentations
+3. comparision of best from 1 or 2 on test set
