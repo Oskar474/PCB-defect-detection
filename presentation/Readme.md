@@ -45,6 +45,10 @@ color: #222222
   * **Validation (Walidacyjny):** 150 obrazów (10%)
   * **Test (Testowy):** 300 obrazów (20%), wybrałem duży rozmiar zbioru testowego w celu bardzo dokładnego porównania osiągów modeli .
 
+<div style="text-align: center; padding: 20px;">
+<img alt="img_1.png" src="img_1.png" width="60%"/>
+</div>
+
 ---
 <div style="display: flex; justify-content: center; gap: 20px;">
   <img src="../presentation/00041067_test_jpg.rf.cea7c571a3610f3e38f391d7678fab72.jpg" style="width: 45%;" alt="Defekt 2">
@@ -63,7 +67,7 @@ color: #222222
 * **Klasy występujące w datasecie:**
   1. `open_circuit` (przerwa w obwodzie)
       <div align="center">
-      <img src="../research/class_2_open.png" width="30%" alt="Defekt" />
+      <img src="../research/class_2_open.png" width="30%" alt="Defekt"/>
       </div>
   2. `short_circuit` (zwarcie)
       <div align="center">
@@ -112,7 +116,7 @@ Projekt zrealizowano w oparciu o rygorystyczny eksperyment podzielony na dwa pod
 | **`hsv_v`** | `0.4` | **Jasność HSV (40%):** Losowa zmiana jasności obrazu o maksymalnie 40%. |
 | **`hsv_h`** | `0.015` | **Odcień HSV (1.5%):** losowa korekta  barwnej.                                                                                                       |
 
-
+![train_batch0.jpg](..%2Fruns%2Fdetect%2FPCB_AOI%2Fyolo11_standard_aug%2Ftrain_batch0.jpg)
 
 ### Podejście C: Augmentacje dobrane pod PCB
 
@@ -126,6 +130,8 @@ Projekt zrealizowano w oparciu o rygorystyczny eksperyment podzielony na dwa pod
 | **`translate`** | `0.05` | **Translacja przestrzenna (5%):** Delikatnie przesuwa kadr w pionie i poziomie. Symuluje to mikroskopijne błędy mechanicznego pozycjonowania stołu roboczego XY lub chwytaka pneumatycznego w linii montażowej. |
 | **`hsv_v`** | `0.1` | **Fluktuacja jasności (10%):** Wprowadza minimalne, losowe zmiany w intensywności oświetlenia. Odwzorowuje to rzeczywiste wahania natężenia światła w fabryce lub naturalne starzenie się diod LED w komorze cieniowej maszyny AOI. |
 
+<img alt="train_batch0.jpg" src="..%2Fruns%2Fdetect%2FPCB_AOI%2Fyolo11_custom_aug%2Ftrain_batch0.jpg"/>
+
 ## 3. Modele i Metody
 
 ### **Ultralytics YOLO11 Nano (Mechanizm Atencji)**
@@ -133,10 +139,37 @@ Projekt zrealizowano w oparciu o rygorystyczny eksperyment podzielony na dwa pod
 * **Głowica:** Klasyczna (One-to-Many) z użyciem *Distribution Focal Loss (DFL)*. Wymaga algorytmu NMS (Non-Maximum Suppression).
 
 
+<div style="text-align: center; padding: 20px;">
+  <img src="../presentation/yolo11_architecture.png" alt="My Image" width="80%">
+</div>
 
 ### **Ultralytics YOLO26 Nano (Native End-to-End)**
 * Architektura zoptymalizowana pod kątem redukcji opóźnień (Edge Deployment).
 * **Głowica:** Nowatorska konstrukcja **One-to-One**. Sieć zwraca dokładnie jeden ramkowy box na defekt, **całkowicie eliminując potrzebę użycia zasobożernego NMS** na procesorze.
+
+<div style="text-align: center; padding: 20px;">
+  <img src="../presentation/Yolo26_architecture.png" alt="My Image" width="80%">
+</div>
+
+
+### Blok SPPF (Spatial Pyramid Pooling - Fast)
+* **Do czego służy:** Agregacja cech o różnej wielkości i budowanie globalnego kontekstu obrazu.
+* **Jak działa:** Przepuszcza dane sekwencyjnie przez serię warstw *Max Pooling* z oknem $5 \times 5$, a następnie łączy wyniki.
+* **Znaczenie w projekcie:** Pozwala modelowi wykrywać te same obiekty niezależnie od tego, czy są duże (z bliska), czy bardzo małe (w tle).
+
+---
+
+### Blok C2PSA (Cross-Stage Partial Spatial Attention)
+* **Do czego służy:** Zaawansowany moduł uwagi przestrzennej (Spatial Attention).
+* **Jak działa:** Przypisuje matematyczne wagi do mapy cech, zmuszając sieć do skupienia "wzroku" na kluczowych detalach i ignorowania pustego tła.
+* **Znaczenie w projekcie:** Kluczowy dla wykrywania małych obiektów oraz defektów, które są częściowo zasłonięte lub niewyraźne.
+
+---
+
+### Blok C3K2 (Cross Stage Partial with kernel size 2)
+* **Do czego służy:** Głęboka ekstrakcja cech (krawędzi, kształtów) oraz przyspieszenie przepływu informacji w sieci.
+* **Jak działa:** Dzieli mapę cech na dwie ścieżki (jedna idzie przez lekkie konwolucje, druga skrótem), a na koniec łączy je z powrotem.
+* **Znaczenie w projekcie:** Pozwala modelom YOLO11 i YOLO26 uczyć się dokładniej, jednocześnie drastycznie zmniejszając liczbę parametrów i wagę pliku `.pt`.
 
 ---
 
@@ -148,8 +181,10 @@ Aby zachować pełną porównywalność, oba modele uruchomiono z identycznymi h
 * **Maksymalna liczba epok (`epochs`):** 100
 * **Rozmiar paczki (`batch`):** 32 
 * **Precyzja obliczeniowa (`amp`):** True (Automatyczna mieszana precyzja FP16 dla rdzeni Tensor)
-* **Early stopping (`patience`):** 15 epok
-*Automatycznie dobrany optymalizator przez silnik (`optimizer=auto`): *
+* **Early stopping (`patience`):** 15 epok 
+* **Learning rate (`lr`):** 0.001
+* **Automatycznie dobrany optymalizator przez silnik, dla obu modeli był to AdamW (`optimizer=auto`)**
+
 
 ---
 
@@ -183,12 +218,17 @@ Aby zachować pełną porównywalność, oba modele uruchomiono z identycznymi h
 
 ## 5. Wyniki – Wizualizacje i Wyjście Modelu
 
-*Miejsce na zrzuty ekranu z Twojego katalogu uruchomieniowego:*
+### YOLO11n (Bez Augmentacji)
+![results.png](..%2Fruns%2Fdetect%2FPCB_AOI%2Fyolo11_no_aug%2Fresults.png)
 
-* **Krzywe Zbieżności:** Wykresy spadku funkcji straty Box Loss i wzrostu mAP (plik `results.png`).
-* **Predykcja w locie:** Przykłady poprawnie zlokalizowanych mikro-wyszczupleń i nakłuć z plików walidacyjnych `val_batch0_labels.jpg`.
-* **Macierz Pomyłek (Confusion Matrix):** Wizualizacja pokazująca, czy modele nie mylą np. klasy `spur` z `spurious_copper`.
+### YOLO11n (Z customową Augmentacją)
+![results.png](..%2Fruns%2Fdetect%2FPCB_AOI%2Fyolo11_custom_aug%2Fresults.png)
 
+### YOLO26n (Bez Augmentacji)
+![results.png](..%2Fruns%2Fdetect%2FPCB_AOI%2Fyolo26_no_aug%2Fresults.png)
+
+### YOLO26n (Z customową Augmentacją)
+![results.png](..%2Fruns%2Fdetect%2FPCB_AOI%2Fyolo26_custom_aug%2Fresults.png)
 ---
 
 ## 5.1 Finalne wyniki
@@ -199,11 +239,10 @@ Do ostatecznego testu na odizolowanym zbiorze testowym wybrano konfiguracje, kt�
 
 * **CPU**
 
-
-| Konfiguracja Eksperymentu             | mAP@0.5   | mAP@0.5:0.95   | Precision   | Recall   |   F1-Score | Inference Time (ms)   |
-|:--------------------------------------|:----------|:---------------|:------------|:---------|-----------:|:----------------------|
-| **YOLO11n (Z customową Augmentacją)** | 97.39%    | 74.84%         | 96.25%      | 93.36%   |       0.95 | 46.88 ms              |
-| **YOLO26n (Z customową Augmentacją)** | 96.75%    | 72.28%         | 93.49%      | 91.26%   |       0.92 | 45.08 ms              |
+| Konfiguracja Eksperymentu             | mAP@0.5 | mAP@0.5:0.95   | Precision   | Recall   |   F1-Score | Inference Time (ms)   |
+|:--------------------------------------|:--------|:---------------|:------------|:---------|-----------:|:----------------------|
+| **YOLO11n (Z customową Augmentacją)** | 97.39%  | 74.84%         | 96.25%      | 93.36%   |       0.95 | 46.88 ms              |
+| **YOLO26n (Z customową Augmentacją)** | 96.75%  | 72.28%         | 93.49%      | 91.26%   |       0.92 | 45.08 ms              |
 
 * **GPU** - Wzrost szybkości inferencji YOLO26n względem YOLO11n - **34,42%**
 
@@ -212,23 +251,34 @@ Do ostatecznego testu na odizolowanym zbiorze testowym wybrano konfiguracje, kt�
 | **YOLO11n (Z customową Augmentacją)** | 97.38%    | 74.83%         | 96.28%      | 93.31%   |       0.95 | 2.76 ms               |
 | **YOLO26n (Z customową Augmentacją)** | 96.76%    | 72.27%         | 93.49%      | 91.27%   |       0.92 | 1.81 ms               |
 
+
+
+### Macierze pomyłek dla 1) YOLO26, 2) YOLO11  
+<div style="display: flex; justify-content: center; gap: 20px; padding-top: px">
+<img alt="confusion_matrix_normalized.png" src="..%2Fruns%2Fdetect%2FPCB_AOI%2Fyolo26_custom_aug%2Fconfusion_matrix_normalized.png" width="45%"/>
+<img alt="confusion_matrix_normalized.png" src="..%2Fruns%2Fdetect%2FPCB_AOI%2Fyolo11_custom_aug%2Fconfusion_matrix_normalized.png" width="45%"/>
+</div>
+
 ---
 
 ## 6. Wnioski i Dyskusja
 
-### Co działa i wnioski architektoniczne:
-* **YOLO11** dzięki warstwie atencji przestrzennej i probabilistycznej stracie DFL osiąga wyjątkowo precyzyjne dopasowanie krawędzi obiektów (wyższy wskaźnik $mAP_{50-95}$). Doskonale radzi sobie z najmniejszymi anomaliami jak `pin_hole`.
-* **YOLO26** udowadnia swoją przewagę w testach prędkości. Usunięcie wąskiego gardła w postaci post-processingu NMS pozwala na niemal dwukrotnie szybsze przetwarzanie klatek na procesorach w warunkach brzegowych.
+* **YOLO11** okazało się lepszym modelem do testowanego rozwiązania wbrew początkowej hipotezie, możliwe że przyczynił się do tego dfl loss, który został usunięty w modelu YOLO26
+* **YOLO26** udowadnia swoją przewagę w testach prędkości. Usunięcie wąskiego gardła w postaci post-processingu NMS spowodowało przyspieszenie inferencji o 34% na GPU.
+* Oba modele uzyskały zadowalające osiągi z f1score na poziomie powyżej 90%, architektura YOLO doskonale nadaje się do analizy obwodów drukowanych. 
 
 ### Ograniczenia projektu:
 * Dataset DeepPCB operuje w idealnych, laboratoryjnych warunkach o stałym oświetleniu. Realna fabryka wprowadza refleksy światła i drgania taśmy.
+* Przez ograniczenia sprzętowe w środowisku treningowym użyte zostały najmniejsze wersje obu modeli z dopiskiem nano, ich najbardziej zaawansowane wersje mają nawet 17 razy więcej parametrów.
+* Testy prędkość inferencji zostały przeprowadzone na domowym PC przez co nie odpowiadają w pełni środowisku docelowemu jakim byłby najprawdopodobniej system wbudowany.
 
 ---
 
-## 6. Wnioski – Co dalej?
+## 6.1 Wnioski – Co dalej?
 
 ### Co zrobiłbym inaczej / Następne kroki:
-1. **Wdrożenie na urządzenia Edge:** Konwersja wag z formatu PyTorch do zoptymalizowanych formatów wykonawczych **ONNX** lub **TensorRT** w celu zbadania realnego FPS na mikrokomputerach przemysłowych.
-2. **Rozszerzenie Augmentacji o Szum Kamer:** Dodanie losowego szumu Gaussowskiego i symulacji rozmycia ruchu (motion blur), by uodpornić model na niedoskonałości optyki obiektywów.
-
+1. **Wdrożenie na systemy wbudowane:** Konwersja wag z formatu PyTorch do zoptymalizowanych formatów wykonawczych **ONNX** lub **TensorRT** w celu dokłądniejszego zbadania czasu inferencji na mikrokomputerach przemysłowych.
+2. **Rozszerzenie Augmentacji o Szum Kamer:** Dodanie losowego szumu Gaussowskiego i symulacji rozmycia ruchu, by uodpornić model na niedoskonałości optyki obiektywów.
+3. **Test innych wersji modeli:** Warto przetestować większe wersje tych samych modeli, te użyte w projekcie to najmniejsze jakie były dostępne.
+4. **Test modeli na innym datasecie:** Użyty dataset składał się ze zdjęć o doskonałym kontraście i wysokiej rozdzielczości, niektóre linie produkcyjne mogą mieć gorszej jakości kamery, warto przetestować modele na trudniejszych danych. 
 ---
