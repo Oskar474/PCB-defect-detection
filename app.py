@@ -28,7 +28,7 @@ def predict_pcb_defects(source_image, model_name, confidence_threshold):
     results = model.predict(
         source=source_image,
         conf=confidence_threshold,
-        device=0,
+        device="cpu",
         agnostic_nms=False if is_yolo26 else False
     )
 

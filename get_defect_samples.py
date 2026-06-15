@@ -24,7 +24,6 @@ def main():
     saved_classes = set()
     total_classes_to_find = len(CLASS_NAMES)
 
-    print("Rozpoczynanie skanowania datasetu w poszukiwaniu próbek klas...")
 
     image_extensions = ('.jpg', '.jpeg', '.png', '.bmp')
     image_files = [f for f in os.listdir(IMAGES_DIR) if f.lower().endswith(image_extensions)]
@@ -99,13 +98,12 @@ def main():
             saved_classes.add(class_id)
             break
 
-    print("\n=== PODSUMOWANIE PROCESU ===")
     print(f"Znaleziono i zapisano: {len(saved_classes)} z {total_classes_to_find} klas.")
     if len(saved_classes) < total_classes_to_find:
         missing = set(CLASS_NAMES.keys()) - saved_classes
         missing_names = [CLASS_NAMES[m] for m in missing]
-        print(f"⚠️ Brakujące klasy w przeszukiwanym folderze: {missing_names}")
-    print(f"Wszystkie pliki znajdziesz w katalogu: {OUTPUT_DIR}")
+        print(f"Brakujące klasy: {missing_names}")
+    print(f"output: {OUTPUT_DIR}")
 
 
 if __name__ == '__main__':

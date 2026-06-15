@@ -5,16 +5,18 @@ _class: lead
 paginate: true
 backgroundColor: #ffffff
 color: #222222
-style: |
-  section {
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    padding: 40px;
-  }
-  h1 { color: #0b3c5d; }
-  h2 { color: #328cc1; }
-  footer { font-size: 0.5em; color: #777777; }
-  col { float: left; width: 50%; }
 ---
+
+<style>
+  /* 1. Najpierw ustawiamy ogromną bazę dla WSZYSTKIEGO co jest tekstem na slajdzie */
+  section, section p, section li, section span {
+    font-family: 'Segoe UI', Roboto, sans-serif !important;
+    font-size: 50px !important; /* To drastycznie powiększy zwykły tekst i listy */
+    line-height: 1.6 !important;
+  }
+
+</style>
+
 
 # Automatyczna Inspekcja Optyczna (AOI) płytek PCB
 ### Porównanie YOLO11 oraz YOLO26 w wykrywaniu defektów produkcyjnych
@@ -28,7 +30,7 @@ style: |
 ### Opis problemu i motywacja
 * **Problem:** Manualna kontrola jakości pakietów PCB w przemyśle elektronicznym jest podatna na błędy ludzkie, kosztowna i powolna.
 * **Dlaczego to ważne?** Przeoczenie mikroskopijnej wady (np. zwarcia lub przerwania ścieżki) prowadzi do awarii całego urządzenia.
-* **Cel projektu:** Stworzenie systemu automatycznej inspekcji optycznej (AOI) opartego na głębokim uczeniu, zdolnego do natychmiastowej lokalizacji i klasyfikacji mikro-defektów w czasie rzeczywistym.
+* **Cel projektu:** Stworzenie systemu automatycznej inspekcji optycznej (AOI) opartego na głębokim uczeniu, zdolnego do natychmiastowej lokalizacji i klasyfikacji mikro-defektów w czasie rzeczywistym. Porównanie modeli YOLO dwóch róznych generacji.
 
 ---
 
@@ -42,6 +44,16 @@ style: |
   * **Train (Treningowy):** 1050 obrazów (70%)
   * **Validation (Walidacyjny):** 150 obrazów (10%)
   * **Test (Testowy):** 300 obrazów (20%), wybrałem duży rozmiar zbioru testowego w celu bardzo dokładnego porównania osiągów modeli .
+
+---
+<div style="display: flex; justify-content: center; gap: 20px;">
+  <img src="../presentation/00041067_test_jpg.rf.cea7c571a3610f3e38f391d7678fab72.jpg" style="width: 45%;" alt="Defekt 2">
+  <img src="../presentation/image.webp" style="width: 45%;" alt="Defekt 2">
+</div>
+<div style="display: flex; justify-content: center; gap: 20px; padding-top: 20px">
+  <img src="../presentation/00041055_test_jpg.rf.28c16d80cbc580beef13dcf91387e0ad.jpg" style="width: 45%;" alt="Defekt 2">
+  <img src="../presentation/image2.webp" style="width: 45%;" alt="Defekt 2">
+</div>
 
 ---
 
@@ -119,6 +131,8 @@ Projekt zrealizowano w oparciu o rygorystyczny eksperyment podzielony na dwa pod
 ### **Ultralytics YOLO11 Nano (Mechanizm Atencji)**
 * Wykorzystuje gęste bloki `C3k2` oraz moduł atencji przestrzennej **C2PSA**. Zmusza sieć do ignorowania pustego podłoża laminatu i skupienia na ścieżkach miedzianych.
 * **Głowica:** Klasyczna (One-to-Many) z użyciem *Distribution Focal Loss (DFL)*. Wymaga algorytmu NMS (Non-Maximum Suppression).
+
+
 
 ### **Ultralytics YOLO26 Nano (Native End-to-End)**
 * Architektura zoptymalizowana pod kątem redukcji opóźnień (Edge Deployment).
